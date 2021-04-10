@@ -8,7 +8,7 @@ public class octopusController : MonoBehaviour
     public float angularDrag;
     public float moveSpeed;
 
-    public LayerMask grappleableSurfaces;
+    public LayerMask grappleableSurfaces, enemySurfaces;
     public Transform targetSource;
     public float maxDistance = 200f;
 
@@ -72,18 +72,11 @@ public class octopusController : MonoBehaviour
     }
 
     private void startGrapple() {
-        RaycastHit hit;
-        bool didHit = Physics.Raycast(
-            transform.position,
-            transform.forward,
-            out hit,
-            maxDistance,
-            grappleableSurfaces
-        );
+        RaycastHit target = fetchRaycastTarget();
 
-        if (!didHit) { return; }
+        if (!target.collider) { return; }
 
-        grapplePoint = hit.point;
+        grapplePoint = target.point;
         joint = gameObject.AddComponent<SpringJoint>();
         joint.autoConfigureConnectedAnchor = false;
         joint.connectedAnchor = grapplePoint;
@@ -110,5 +103,29 @@ public class octopusController : MonoBehaviour
 
         lineRenderer.SetPosition(0, transform.position);
         lineRenderer.SetPosition(1, grapplePoint);
+    }
+
+    private RaycastHit fetchRaycastTarget() {
+        RaycastHit hit;
+
+        bool hitEnemy = Physics.Raycast(
+            transform.position,
+            transform.forward,
+            out hit,
+            maxDistance,
+            enemySurfaces
+        );
+
+        if (hit.collider) { return hit; }
+        
+        bool hitWall = Physics.Raycast(
+            transform.position,
+            transform.forward,
+            out hit,
+            maxDistance,
+            grappleableSurfaces
+        );
+
+        return hit;
     }
 }
