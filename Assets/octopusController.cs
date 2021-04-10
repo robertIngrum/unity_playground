@@ -20,7 +20,7 @@ public class octopusController : MonoBehaviour
 
     private Rigidbody rigidBody;
     private LineRenderer lineRenderer;
-    private Vector3 grapplePoint;
+    private GameObject grappleTarget;
     private SpringJoint joint;
 
     void Awake() {
@@ -76,12 +76,12 @@ public class octopusController : MonoBehaviour
 
         if (!target.collider) { return; }
 
-        grapplePoint = target.point;
+        grappleTarget = target.collider.gameObject;
         joint = gameObject.AddComponent<SpringJoint>();
         joint.autoConfigureConnectedAnchor = false;
-        joint.connectedAnchor = grapplePoint;
+        joint.connectedAnchor = grappleTarget.transform.position;
 
-        float distanceFromPoint = Vector3.Distance(transform.position, grapplePoint);
+        float distanceFromPoint = Vector3.Distance(transform.position, grappleTarget.transform.position);
 
         joint.maxDistance = distanceFromPoint * maxGrappleLength;
         joint.minDistance = distanceFromPoint * minGrappleLength;
@@ -94,6 +94,8 @@ public class octopusController : MonoBehaviour
     }
 
     private void stopGrapple() {
+        grappleTarget = null;
+
         lineRenderer.positionCount = 0;
         Destroy(joint);
     }
@@ -101,8 +103,9 @@ public class octopusController : MonoBehaviour
     private void DrawRope() {
         if (!joint) { return; }
 
+        joint.connectedAnchor = grappleTarget.transform.position;
         lineRenderer.SetPosition(0, transform.position);
-        lineRenderer.SetPosition(1, grapplePoint);
+        lineRenderer.SetPosition(1, grappleTarget.transform.position);
     }
 
     private RaycastHit fetchRaycastTarget() {
